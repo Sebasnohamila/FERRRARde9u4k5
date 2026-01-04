@@ -5,7 +5,36 @@
         <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
         <script src="https://raw.githack.com/AR-js-org/studio-backend/master/src/modules/marker/tools/gesture-detector.js"></script>
         <script src="https://raw.githack.com/AR-js-org/studio-backend/master/src/modules/marker/tools/gesture-handler.js"></script>
+
+        <style>
+            #splash-screen {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: white; /* Fondo blanco mientras carga */
+                z-index: 9999;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                transition: opacity 1s ease-out; /* Desvanecimiento suave */
+            }
+
+            #splash-screen img {
+                max-width: 60%; /* Tamaño del logo */
+                height: auto;
+            }
+
+            /* Esta clase se agrega automáticamente cuando AR.js está listo */
+            .arjs-ready #splash-screen {
+                opacity: 0;
+                pointer-events: none;
+            }
+        </style>
+
         <script>
+            // Componente para manejar el video (play/pause)
             AFRAME.registerComponent('videohandler', {
                 init: function () {
                     var marker = this.el;
@@ -22,10 +51,29 @@
                     }.bind(this));
                 },
             });
+
+            // =========================================
+            // LÓGICA PARA OCULTAR EL LOGO CUANDO LA CÁMARA CARGA
+            // =========================================
+            window.addEventListener('arjs-video-loaded', function(e) {
+                setTimeout(() => {
+                     document.body.classList.add('arjs-ready');
+                }, 1000); // Espera 1 segundo extra para estabilidad
+            });
+            
+            // Respaldo por si tarda mucho (15 seg)
+             setTimeout(() => {
+                 document.body.classList.add('arjs-ready');
+            }, 15000);
         </script>
     </head>
 
     <body style="margin: 0; overflow: hidden;">
+
+        <div id="splash-screen">
+            <img src="assets/logo.png" alt="Cargando experiencia...">
+        </div>
+
         <a-scene
             vr-mode-ui="enabled: false"
             loading-screen="enabled: false;"
@@ -52,7 +100,6 @@
             </a-assets>
 
             <a-entity light="type: ambient; intensity: 1; color: #ffffff"></a-entity>
-            
             <a-entity light="type: directional; intensity: 1.5; castShadow: false;" position="2 4 4"></a-entity>
 
             <a-marker
@@ -79,7 +126,7 @@
                 <a-entity
                     gltf-model="#miModelo"
                     scale="0.5 0.5 0.5"
-                    position="0 0.5 0.5"
+                    position="0 0.5 2.5" 
                     rotation="0 0 0"
                     class="clickable"
                     gesture-handler="minScale: 0.25; maxScale: 10"
