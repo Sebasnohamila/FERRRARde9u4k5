@@ -46,6 +46,8 @@
                     autoplay
                     playsinline
                 ></video>
+                
+                <a-asset-item id="modelo-3d" src="assets/mi-modelo.glb"></a-asset-item>
             </a-assets>
 
             <a-marker
@@ -70,6 +72,16 @@
                     class="clickable"
                     gesture-handler
                 ></a-video>
+
+                <a-entity
+                    gltf-model="#modelo-3d"
+                    scale="0.5 0.5 0.5"
+                    position="0 0 0.5"
+                    rotation="0 0 0"
+                    class="clickable"
+                    gesture-handler
+                ></a-entity>
+
             </a-marker>
 
             <a-entity camera></a-entity>
