@@ -5,7 +5,6 @@
         <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
         <script src="https://raw.githack.com/AR-js-org/studio-backend/master/src/modules/marker/tools/gesture-detector.js"></script>
         <script src="https://raw.githack.com/AR-js-org/studio-backend/master/src/modules/marker/tools/gesture-handler.js"></script>
-        
         <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js"></script>
 
         <style>
@@ -24,26 +23,32 @@
                 init: function () {
                     var marker = this.el;
                     this.vid = document.querySelector("#vid");
+                    // Buscamos el modelo (que ahora es hijo del contenedor)
                     this.model = document.querySelector("#animatedModel"); 
 
                     marker.addEventListener('markerFound', function () {
                         this.toggle = true;
                         this.vid.play();
-                        
-                        if (this.model) {
-                            this.model.setAttribute('animation-mixer', 'timeScale: 1');
-                        }
+                        if (this.model) this.model.setAttribute('animation-mixer', 'timeScale: 1');
                     }.bind(this));
 
                     marker.addEventListener('markerLost', function () {
                         this.toggle = false;
                         this.vid.pause();
-                        
-                        if (this.model) {
-                            this.model.setAttribute('animation-mixer', 'timeScale: 0');
-                        }
+                        if (this.model) this.model.setAttribute('animation-mixer', 'timeScale: 0');
                     }.bind(this));
                 },
+            });
+
+            // --- NUEVO SCRIPT: BLOQUEAR ROTACIÓN VERTICAL ---
+            // Este componente fuerza a que la rotación X y Z sean siempre 0
+            AFRAME.registerComponent('lock-rotation-axis', {
+                tick: function () {
+                    // Mantenemos la rotación X y Z en 0 para que no se incline
+                    // Solo permitimos que cambie la Y (giro horizontal)
+                    this.el.object3D.rotation.x = 0;
+                    this.el.object3D.rotation.z = 0;
+                }
             });
 
             window.addEventListener('arjs-video-loaded', function(e) {
@@ -54,19 +59,14 @@
     </head>
 
     <body style="margin: 0; overflow: hidden;">
-
-        <div id="splash-screen">
-            <img src="assets/logo.png" alt="Cargando experiencia...">
-        </div>
+        <div id="splash-screen"><img src="assets/logo.png" alt="Cargando..."></div>
 
         <a-scene
             vr-mode-ui="enabled: false"
             loading-screen="enabled: false;"
             arjs='sourceType: webcam; debugUIEnabled: false;'
             renderer="logarithmicDepthBuffer: true; colorManagement: true;" 
-            id="scene"
-            embedded
-            gesture-detector
+            id="scene" embedded gesture-detector
         >
             <a-assets>
                 <video id="vid" src="assets/asset.mp4" preload="auto" response-type="arraybuffer" loop crossorigin webkit-playsinline autoplay playsinline></video>
@@ -77,39 +77,31 @@
             <a-entity light="type: directional; intensity: 1.5; castShadow: false;" position="2 4 4"></a-entity>
 
             <a-marker
-                type="pattern"
-                preset="custom"
-                url="assets/marker.patt"
-                videohandler
-                smooth="true"
-                smoothCount="10"
-                smoothTolerance="0.01"
-                smoothThreshold="5"
-                raycaster="objects: .clickable"
-                emitevents="true"
-                cursor="fuse: false; rayOrigin: mouse;"
-                id="markerA"
+                type="pattern" preset="custom" url="assets/marker.patt"
+                videohandler smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5"
+                raycaster="objects: .clickable" emitevents="true"
+                cursor="fuse: false; rayOrigin: mouse;" id="markerA"
             >
-                <a-video
-                    src="#vid"
-                    scale="1 1 1"
-                    position="0 0.1 0"
-                    rotation="-90 0 0"
-                ></a-video>
+                <a-video src="#vid" scale="1 1 1" position="0 0.1 0" rotation="-90 0 0"></a-video>
 
-                <a-entity
-                    id="animatedModel"
-                    gltf-model="#miModelo"
-                    scale="0.025 0.025 0.025"
-                    position="0 0.5 1" 
-                    rotation="-90 0 0"
+                <a-entity 
+                    id="rotation-container"
+                    position="0 0.1 1"
                     class="clickable"
                     gesture-handler="minScale: 0.25; maxScale: 10; rotationFactor: 1;"
-                    animation-mixer="loop: repeat" 
-                ></a-entity>
+                    lock-rotation-axis
+                >
+                    <a-entity
+                        id="animatedModel"
+                        gltf-model="#miModelo"
+                        scale="0.05 0.05 0.05"
+                        position="0 0 0" 
+                        rotation="-90 0 0"
+                        animation-mixer="loop: repeat" 
+                    ></a-entity>
+                </a-entity>
 
             </a-marker>
-
             <a-entity camera></a-entity>
         </a-scene>
     </body>
