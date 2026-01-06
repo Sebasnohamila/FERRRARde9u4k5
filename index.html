@@ -1,3 +1,11 @@
+Para escalar el video al doble de tamaño, solo necesitamos modificar una línea en el script fix-video-size.
+
+Actualmente, el código fija el ancho en 1 (que es el tamaño exacto del marcador). Lo cambiaremos a 2.
+
+Aquí tienes el código completo con la modificación aplicada en el script y en la lógica de altura:
+
+HTML
+
 <!doctype html>
 <html>
     <head>
@@ -39,30 +47,24 @@
                 },
             });
 
-            // --- AQUÍ ESTÁ EL CAMBIO ---
-            // Antes bloqueaba X y Z. Ahora bloquea Y (lados) y Z (inclinación lateral).
-            // Solo permite X (Arriba/Abajo)
-            AFRAME.registerComponent('lock-rotation-axis', {
-                tick: function () {
-                    // Bloqueamos el giro horizontal (Y)
-                    this.el.object3D.rotation.y = 0; 
-                    // Bloqueamos el giro de rueda (Z)
-                    this.el.object3D.rotation.z = 0; 
-                    // Dejamos libre la X
-                }
-            });
-
+            // --- SCRIPT MODIFICADO PARA DOBLE TAMAÑO ---
             AFRAME.registerComponent('fix-video-size', {
                 init: function () {
                     var videoEl = document.querySelector("#vid");
                     var planeEl = this.el; 
+                    
                     var applySize = function() {
                         if (videoEl.videoWidth > 0 && videoEl.videoHeight > 0) {
                             var aspectRatio = videoEl.videoHeight / videoEl.videoWidth;
-                            planeEl.setAttribute('width', 1);
-                            planeEl.setAttribute('height', aspectRatio);
+                            
+                            // CAMBIO AQUÍ: Multiplicamos por 2
+                            var scaleFactor = 2; 
+
+                            planeEl.setAttribute('width', scaleFactor); 
+                            planeEl.setAttribute('height', aspectRatio * scaleFactor);
                         }
                     };
+
                     videoEl.addEventListener('loadedmetadata', applySize);
                     if (videoEl.readyState >= 1) applySize();
                 }
@@ -111,7 +113,6 @@
                     position="0 0.1 1"
                     class="clickable"
                     gesture-handler="minScale: 0.25; maxScale: 10; rotationFactor: 1;"
-                    lock-rotation-axis
                 >
                     <a-entity
                         id="animatedModel"
