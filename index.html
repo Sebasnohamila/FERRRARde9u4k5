@@ -39,30 +39,32 @@
                 },
             });
 
+            // --- AQUÍ ESTÁ EL CAMBIO ---
+            // Antes bloqueaba X y Z. Ahora bloquea Y (lados) y Z (inclinación lateral).
+            // Solo permite X (Arriba/Abajo)
             AFRAME.registerComponent('lock-rotation-axis', {
                 tick: function () {
-                    this.el.object3D.rotation.x = 0;
-                    this.el.object3D.rotation.z = 0;
+                    // Bloqueamos el giro horizontal (Y)
+                    this.el.object3D.rotation.y = 0; 
+                    // Bloqueamos el giro de rueda (Z)
+                    this.el.object3D.rotation.z = 0; 
+                    // Dejamos libre la X
                 }
             });
 
-            // --- NUEVO SCRIPT: AJUSTAR TAMAÑO DE VIDEO AUTOMÁTICAMENTE ---
             AFRAME.registerComponent('fix-video-size', {
                 init: function () {
                     var videoEl = document.querySelector("#vid");
-                    var planeEl = this.el; // El objeto <a-video>
-
-                    // Esperamos a que el video cargue su información (metadata)
-                    videoEl.addEventListener('loadedmetadata', function() {
-                        // Calculamos la proporción (Alto / Ancho)
-                        var aspectRatio = videoEl.videoHeight / videoEl.videoWidth;
-                        
-                        // Mantenemos el ancho en 1 (ancho del marcador) y ajustamos la altura
-                        planeEl.setAttribute('width', 1);
-                        planeEl.setAttribute('height', aspectRatio);
-                        
-                        console.log("Video ajustado. Ratio: " + aspectRatio);
-                    });
+                    var planeEl = this.el; 
+                    var applySize = function() {
+                        if (videoEl.videoWidth > 0 && videoEl.videoHeight > 0) {
+                            var aspectRatio = videoEl.videoHeight / videoEl.videoWidth;
+                            planeEl.setAttribute('width', 1);
+                            planeEl.setAttribute('height', aspectRatio);
+                        }
+                    };
+                    videoEl.addEventListener('loadedmetadata', applySize);
+                    if (videoEl.readyState >= 1) applySize();
                 }
             });
 
