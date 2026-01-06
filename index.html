@@ -23,7 +23,6 @@
                 init: function () {
                     var marker = this.el;
                     this.vid = document.querySelector("#vid");
-                    // Buscamos el modelo (que ahora es hijo del contenedor)
                     this.model = document.querySelector("#animatedModel"); 
 
                     marker.addEventListener('markerFound', function () {
@@ -40,14 +39,30 @@
                 },
             });
 
-            // --- NUEVO SCRIPT: BLOQUEAR ROTACIÓN VERTICAL ---
-            // Este componente fuerza a que la rotación X y Z sean siempre 0
             AFRAME.registerComponent('lock-rotation-axis', {
                 tick: function () {
-                    // Mantenemos la rotación X y Z en 0 para que no se incline
-                    // Solo permitimos que cambie la Y (giro horizontal)
                     this.el.object3D.rotation.x = 0;
                     this.el.object3D.rotation.z = 0;
+                }
+            });
+
+            // --- NUEVO SCRIPT: AJUSTAR TAMAÑO DE VIDEO AUTOMÁTICAMENTE ---
+            AFRAME.registerComponent('fix-video-size', {
+                init: function () {
+                    var videoEl = document.querySelector("#vid");
+                    var planeEl = this.el; // El objeto <a-video>
+
+                    // Esperamos a que el video cargue su información (metadata)
+                    videoEl.addEventListener('loadedmetadata', function() {
+                        // Calculamos la proporción (Alto / Ancho)
+                        var aspectRatio = videoEl.videoHeight / videoEl.videoWidth;
+                        
+                        // Mantenemos el ancho en 1 (ancho del marcador) y ajustamos la altura
+                        planeEl.setAttribute('width', 1);
+                        planeEl.setAttribute('height', aspectRatio);
+                        
+                        console.log("Video ajustado. Ratio: " + aspectRatio);
+                    });
                 }
             });
 
@@ -82,7 +97,12 @@
                 raycaster="objects: .clickable" emitevents="true"
                 cursor="fuse: false; rayOrigin: mouse;" id="markerA"
             >
-                <a-video src="#vid" scale="1 1 1" position="0 0.1 0" rotation="-90 0 0"></a-video>
+                <a-video
+                    src="#vid"
+                    fix-video-size
+                    position="0 0.1 0"
+                    rotation="-90 0 0"
+                ></a-video>
 
                 <a-entity 
                     id="rotation-container"
@@ -94,7 +114,7 @@
                     <a-entity
                         id="animatedModel"
                         gltf-model="#miModelo"
-                        scale="0.05 0.05 0.05"
+                        scale="0.01 0.01 0.01"
                         position="0 0 0" 
                         rotation="-90 0 0"
                         animation-mixer="loop: repeat" 
